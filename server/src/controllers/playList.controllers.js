@@ -107,6 +107,9 @@ export const deletePlaylist = asyncHandler(async(req,res) => {
 export const updatePlayList = asyncHandler(async(req,res) => {
     const {name ,description} = req.body;
     const {playListId} = req.params
+    if (!name || !description) {
+        throw new ApiError(300,"name and description is requred")
+    }
 
     const updatedPlaylist = await PlayList.findByIdAndUpdate(
         playListId,

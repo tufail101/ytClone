@@ -8,10 +8,10 @@ router.use(varifyjwt)
 
 router.route("/createPlayList").post(createPlaylist)
 router.route("/addVideoToPlayList/:videoId/:playListId").post(addVideoToPlayList)
-router.route("/removeVideoFromPlayList/:playListId/:videoId").post(removeVideoFromPlayList)
+router.route("/removeVideoFromPlayList/:playListId/:videoId").patch(removeVideoFromPlayList)
 router.route("/playListById/:playListId").get(getPlayListById)
 router.route("/update/:playListId").patch(updatePlayList)
-router.route("/delet/:playListId").delete(deletePlaylist)
+router.route("/delete/:playListId").delete(deletePlaylist)
 
 
 
