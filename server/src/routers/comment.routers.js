@@ -16,6 +16,6 @@ router.route("/getVideoComment/:videoId").get(getVideoComment);
 router
   .route("/publishCommentOnComment/:commentId")
   .post(publishCommentOnComment);
-router.route("/delete/:commentId").patch(deleteComment);
+router.route("/delete/:commentId").delete(deleteComment);
 
 export default router;

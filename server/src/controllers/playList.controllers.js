@@ -87,6 +87,14 @@ export const getPlayListById = asyncHandler(async(req,res) => {
 export const deletePlaylist = asyncHandler(async(req,res) => {
     const {playListId} = req.params;
 
+        const playlist = await PlayList.findById(playListId);
+
+    if (!playlist) {
+      throw new ApiError(404,"PlayList not found");
+    }
+    if (playlist.owner.toString() !== req.user?._id.toString()) {
+        throw new ApiError(403,"You can not delete this playlist")
+    }
     await PlayList.findByIdAndDelete(playListId);
 
     return res

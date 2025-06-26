@@ -26,7 +26,7 @@ router.route("/updateUserAvatar").patch(
     upload.single("avatar"),
     updateUserAvatar
 )
-router.route("/updateUserCoverImg").post(
+router.route("/updateUserCoverImg").patch(
     varifyjwt,
     upload.single("coverImage"),
     updateUserCoverImg

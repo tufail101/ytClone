@@ -148,6 +148,13 @@ export const publishCommentOnComment = asyncHandler(async(req,res) => {
 
 export const deleteComment = asyncHandler(async(req,res) => {
     const {commentId} = req.params
+    const comment = await Comment.findById(commentId)
+    if (!comment) {
+        throw new ApiError(404,"comment not found")
+    }
+    if (comment.commentBy.toString() !== req.user?.toString()) {
+        throw new ApiError(403,"you can not delete this comment")
+    }
     await Comment.findByIdAndDelete(commentId)
     return res
     .status(200)
