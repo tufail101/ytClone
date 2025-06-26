@@ -20,8 +20,8 @@ router.route("/login").post(login)
 router.route("/refreshAccessToken").post(refreshAccessToken)
 router.route("/logout").post(varifyjwt,logoutUser)
 router.route("/changeCurrentPassword").post(varifyjwt,changeCurrentPassword)
-router.route("/updateUserDetails").post(varifyjwt,updateAccountDetails)
-router.route("/updateUserAvatar").post(
+router.route("/updateUserDetails").patch(varifyjwt,updateAccountDetails)
+router.route("/updateUserAvatar").patch(
     varifyjwt,
     upload.single("avatar"),
     updateUserAvatar

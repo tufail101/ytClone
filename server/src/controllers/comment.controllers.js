@@ -146,3 +146,12 @@ export const publishCommentOnComment = asyncHandler(async(req,res) => {
 
 })
 
+export const deleteComment = asyncHandler(async(req,res) => {
+    const {commentId} = req.params
+    await Comment.findByIdAndDelete(commentId)
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,{},"Comment delete succesfull")
+    )
+})

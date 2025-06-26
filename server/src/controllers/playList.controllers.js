@@ -83,3 +83,40 @@ export const getPlayListById = asyncHandler(async(req,res) => {
         new ApiResponse(200,playList,"Playlist fetched succesfull")
     )
 })
+
+export const deletePlaylist = asyncHandler(async(req,res) => {
+    const {playListId} = req.params;
+
+    await PlayList.findByIdAndDelete(playListId);
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,{},"PlayList deleted succesfull")
+    )
+})
+
+export const updatePlayList = asyncHandler(async(req,res) => {
+    const {name ,description} = req.body;
+    const {playListId} = req.params
+
+    const updatedPlaylist = await PlayList.findByIdAndUpdate(
+        playListId,
+        {
+            name,
+            description
+        },
+        {
+            new : true
+        }
+    )
+    if (!updatedPlaylist) {
+        throw new ApiError(500,"Failed to update playList")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,updatedPlaylist,"Update playlist succesfull")
+    )
+})

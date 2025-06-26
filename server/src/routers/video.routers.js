@@ -23,12 +23,12 @@ router.route("/publishVideo").post(
     ]),
     publishVideo
 )
-router.route("/updateVideo/:videoId").post(
+router.route("/updateVideo/:videoId").patch(
     upload.single("thumbnail"),
     updateVideo
 )
-router.route("/deleteVideo/:videoId").post(deleteVideo)
-router.route("/toggleVideoPublish/:videoId").post(toggleVideoPublish)
+router.route("/deleteVideo/:videoId").delete(deleteVideo)
+router.route("/toggleVideoPublish/:videoId").patch(toggleVideoPublish)
 router.route("/getVideoById/:videoId").get(getVideoById)
 
 export default router
