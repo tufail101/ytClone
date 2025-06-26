@@ -12,4 +12,5 @@ router.route("/getVideoComment/:videoId").get(getVideoComment)
 router.route("/publishCommentOnComment/:commentId").post(publishCommentOnComment)
 router.route("/delete/:commentId").patch(deleteComment)
 
+
 export default router
