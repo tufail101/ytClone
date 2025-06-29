@@ -281,13 +281,24 @@ export const getVideoById = asyncHandler(async (req,res) => {
             }
         },
         {
+            $lookup : {
+                from : "likes",
+                localField : "_id",
+                foreignField : "video",
+                as : "like"
+
+            },
+            
+        },
+        {
             $project : {
                 title : 1,
                 discription :1,
                 thumbnail : 1,
                 videourl : 1,
                 duration :1,
-                viewsCOunt:{$size : "$views"},
+                viewsCount:{$size : "$views"},
+                likes : {$size : "$like"},
                 OwnerDetails : 1
                 
             }
