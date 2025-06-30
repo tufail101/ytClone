@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { videoById } from "../../api/videoApi";
+import { FiSettings } from "react-icons/fi";
 
 export default function WatchPage() {
   const { id } = useParams();
@@ -11,7 +12,8 @@ export default function WatchPage() {
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
-  const [currentQuelity ,setCurrentQuelity] = useState("360p")
+  const [currentQuelity, setCurrentQuelity] = useState("360p");
+  const [showQualityDropdown, setShowQualityDropdown] = useState(false);
 
   const handleLike = async () => {
     try {
@@ -34,14 +36,16 @@ export default function WatchPage() {
   };
 
   const handleDislike = () => {
-    
-  }
+    setLiked(false);
+    setDisliked(true);
+  };
 
   useEffect(() => {
     setLoading(true);
     videoById(id)
       .then((res) => {
         setVideo(res.data.data);
+        setCurrentQuelity("360p");
       })
       .catch((err) => {
         console.error(err);
@@ -50,11 +54,14 @@ export default function WatchPage() {
         setLoading(false);
       });
   }, [id]);
-  
-const handleQualityChange = () => {
 
-}
-  
+  const handleQualityChange = (e) => {
+    setCurrentQuelity(e.target.value);
+  };
+  const getVideoUrlByQuality = (label) => {
+    const qualityObj = video?.qualities?.find((q) => q.label === label);
+    return qualityObj?.url || video.videourl;
+  };
 
   if (loading) {
     return (
@@ -73,24 +80,51 @@ const handleQualityChange = () => {
   }
 
   return (
-    <div className="p-4 bg-[#0f0f0f] min-h-screen text-white">
-      
-      <video
-        src={video.videourl}
-        controls
-        className="w-full max-h-[500px] rounded-lg mb-4"
-      />
-          {/* <select
-      value={currentQuelity}
-      onChange={handleQualityChange}
-      className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 text-sm rounded"
-    >
-      {Object.keys(video?.sources).map((q) => (
-        <option key={q} value={q}>
-          {q}
-        </option>
-      ))}
-    </select> */}
+    <>
+<div className="relative w-full max-h-[500px] mb-4">
+  {/* Video Player */}
+  <video
+    key={currentQuelity}
+    src={getVideoUrlByQuality(currentQuelity)}
+    controls
+    className="w-full max-h-[500px] rounded-lg"
+  />
+
+  {/* Quality Switcher - Positioned above the video controls */}
+  <div className="absolute bottom-16 right-6 z-30">
+    <div className="relative">
+      {/* Gear Icon Button */}
+      <button
+        onClick={() => setShowQualityDropdown(!showQualityDropdown)}
+        className="p-2 bg-black/70 rounded-full text-white hover:bg-black/90"
+        title="Settings"
+      >
+        <FiSettings size={20} />
+      </button>
+
+      {/* Dropdown Options */}
+      {showQualityDropdown && (
+        <div className="absolute bottom-full mb-2 right-0 bg-black text-white rounded-md shadow-lg w-24 text-sm">
+          {video.qualities.map((q) => (
+            <div
+              key={q.label}
+              onClick={() => {
+                setCurrentQuelity(q.label);
+                setShowQualityDropdown(false);
+              }}
+              className={`px-3 py-2 cursor-pointer hover:bg-gray-700 ${
+                currentQuelity === q.label ? "bg-gray-800 font-bold" : ""
+              }`}
+            >
+              {q.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
 
       <h1 className="text-2xl font-semibold mb-2">{video.title}</h1>
 
@@ -103,7 +137,9 @@ const handleQualityChange = () => {
           />
           <div>
             <p className="font-medium">{video.OwnerDetails[0].name}</p>
-            <p className="text-gray-400 text-sm">@{video.OwnerDetails[0].username}</p>
+            <p className="text-gray-400 text-sm">
+              @{video.OwnerDetails[0].username}
+            </p>
           </div>
         </div>
 
@@ -132,7 +168,9 @@ const handleQualityChange = () => {
               subscribed ? "bg-gray-600 text-white" : "bg-white text-black"
             } hover:opacity-80 transition`}
           >
-            {subscribed ? `Subscribed ${video.OwnerDetails[0].subscriberCount}` : `Subscribe ${video.OwnerDetails[0].subscriberCount}`} 
+            {subscribed
+              ? `Subscribed ${video.OwnerDetails[0].subscriberCount}`
+              : `Subscribe ${video.OwnerDetails[0].subscriberCount}`}
           </button>
         </div>
       </div>
@@ -142,10 +180,10 @@ const handleQualityChange = () => {
         {new Date(video.createdAt).toLocaleDateString()}
       </div>
 
-      {/* Description */}
       <div className="bg-[#1f1f1f] p-4 rounded-lg text-sm text-gray-300">
         {video.discription}
       </div>
-    </div>
+    
+    </>
   );
 }

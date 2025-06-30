@@ -305,7 +305,8 @@ export const getVideoById = asyncHandler(async (req,res) => {
                 duration :1,
                 viewsCount:{$size : "$views"},
                 likes : {$size : "$like"},
-                OwnerDetails : 1
+                OwnerDetails : 1,
+                qualities : 1
                 
             }
         }
