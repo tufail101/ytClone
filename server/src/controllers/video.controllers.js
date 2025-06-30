@@ -6,6 +6,7 @@ import { uploadOnCloudinary } from "../utils/cloudinay.js"
 import { fromateDuraction } from "../utils/formateDuration.js"
 import mongoose from "mongoose"
 import { User } from "../models/user.models.js"
+import { convertVideo } from "../utils/convertVideo.js"
 
 export const getAllVideos = asyncHandler(async(req,res) => {
     const {page,limit} = req.query
@@ -95,17 +96,22 @@ export const publishVideo = asyncHandler(async (req,res) => {
         throw new ApiError(500,"failed to upload thumbnail")
     }
 
-    const videoCloudinaryResponse = await uploadOnCloudinary(videoLocalPath)
-    if (!videoCloudinaryResponse) {
-        throw new ApiError(500,"failed to upload video")
-    }
+    // const videoCloudinaryResponse = await uploadOnCloudinary(videoLocalPath)
+    // if (!videoCloudinaryResponse) {
+    //     throw new ApiError(500,"failed to upload video")
+    // }
+    const qualityUrls = await convertVideo(videoLocalPath)
+    if (!qualityUrls['360p']) {
+    throw new ApiError(500, "Video conversion or upload failed");
+}
 
     const video =await new Video({
         title,
         discription,
         thumbnail : thumbnailCloudinaryResponse.secure_url,
-        videourl : videoCloudinaryResponse.secure_url,
-        duration : fromateDuraction(videoCloudinaryResponse.duration),
+        videourl : qualityUrls["360p"],
+        qualities : Object.entries(qualityUrls).map(([label, url]) => ({ label, url })),
+        duration : fromateDuraction(qualityUrls["360p"].duration),
         owner : req.user?._id
     })
 

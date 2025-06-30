@@ -1,38 +1,45 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { videoById } from "../../api/videoApi";
 
 export default function WatchPage() {
-  const {id} = useParams();
+  const { id } = useParams();
   const apiUrl = import.meta.env.REACT_APP_API_URL;
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [currentQuelity ,setCurrentQuelity] = useState("360p")
 
   const handleLike = async () => {
-   try {
-     await axios.post(`${apiUrl}/like/likeVideo/${video._id}`)
-     setLiked(true);
-     setDisliked(false);
-   } catch (error) {
-    console.error("Toggle like failed:", error);
-   }
-  }
+    try {
+      await axios.post(`${apiUrl}/like/likeVideo/${video._id}`);
+      setLiked(true);
+      setDisliked(false);
+    } catch (error) {
+      console.error("Toggle like failed:", error);
+    }
+  };
   const handleSubscribe = async () => {
-   try {
-     await axios.post(`${apiUrl}/subscription/toggleSubscription/${video.owner._id}`)
-     setSubscribed(false);
-   } catch (error) {
-     console.error("Toggle subscribe failed:", error);
-   }
+    try {
+      await axios.post(
+        `${apiUrl}/subscription/toggleSubscription/${video.owner._id}`
+      );
+      setSubscribed(false);
+    } catch (error) {
+      console.error("Toggle subscribe failed:", error);
+    }
+  };
+
+  const handleDislike = () => {
+    
   }
 
   useEffect(() => {
     setLoading(true);
-    axios
-      .get(`${apiUrl}/video/getVideoById/${id}`)
+    videoById(id)
       .then((res) => {
         setVideo(res.data.data);
       })
@@ -43,6 +50,11 @@ export default function WatchPage() {
         setLoading(false);
       });
   }, [id]);
+  
+const handleQualityChange = () => {
+
+}
+  
 
   if (loading) {
     return (
@@ -61,33 +73,40 @@ export default function WatchPage() {
   }
 
   return (
-     <div className="p-4 bg-[#0f0f0f] min-h-screen text-white">
-      {/* Video Player */}
+    <div className="p-4 bg-[#0f0f0f] min-h-screen text-white">
+      
       <video
-        src={video.videoUrl}
+        src={video.videourl}
         controls
         className="w-full max-h-[500px] rounded-lg mb-4"
       />
+          {/* <select
+      value={currentQuelity}
+      onChange={handleQualityChange}
+      className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 text-sm rounded"
+    >
+      {Object.keys(video?.sources).map((q) => (
+        <option key={q} value={q}>
+          {q}
+        </option>
+      ))}
+    </select> */}
 
-      
       <h1 className="text-2xl font-semibold mb-2">{video.title}</h1>
 
-      
       <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
-        
         <div className="flex items-center gap-3">
           <img
-            src={video.owner.avatar}
-            alt={video.owner.username}
+            src={video.OwnerDetails[0].avatar}
+            alt={video.OwnerDetails[0].username}
             className="w-10 h-10 rounded-full"
           />
           <div>
-            <p className="font-medium">{video.owner.name}</p>
-            <p className="text-gray-400 text-sm">@{video.owner.username}</p>
+            <p className="font-medium">{video.OwnerDetails[0].name}</p>
+            <p className="text-gray-400 text-sm">@{video.OwnerDetails[0].username}</p>
           </div>
         </div>
 
-       
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={handleLike}
@@ -95,7 +114,7 @@ export default function WatchPage() {
               liked ? "bg-red-600 text-white" : "bg-[#1f1f1f] text-gray-300"
             } hover:bg-red-500 transition`}
           >
-            👍 Like
+            👍 Like {video.likes}
           </button>
 
           <button
@@ -113,20 +132,19 @@ export default function WatchPage() {
               subscribed ? "bg-gray-600 text-white" : "bg-white text-black"
             } hover:opacity-80 transition`}
           >
-            {subscribed ? "Subscribed" : "Subscribe"}
+            {subscribed ? `Subscribed ${video.OwnerDetails[0].subscriberCount}` : `Subscribe ${video.OwnerDetails[0].subscriberCount}`} 
           </button>
         </div>
       </div>
 
-      
       <div className="text-sm text-gray-400 mb-3">
-        {video.views.toLocaleString()} views ·{" "}
+        {video.viewsCount.toLocaleString()} views ·{" "}
         {new Date(video.createdAt).toLocaleDateString()}
       </div>
 
       {/* Description */}
       <div className="bg-[#1f1f1f] p-4 rounded-lg text-sm text-gray-300">
-        {video.description}
+        {video.discription}
       </div>
     </div>
   );

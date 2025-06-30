@@ -2,12 +2,15 @@ import React from "react";
 import { Link } from "react-router";
 
 export default function VideoCard({ video }) {
+  // console.log(video);
+  
   return (
     <Link to={`/watch/${video._id}`} className="block">
-      <div className="w-full sm:w-80">
+      <div className="w-full">
+
         
         <img
-          src={video.thumbnailUrl}
+          src={video.thumbnail}
           alt={video.title}
           className="rounded-lg w-full h-44 object-cover"
         />

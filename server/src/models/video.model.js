@@ -36,7 +36,8 @@ const videoSchema = new mongoose.Schema({
     qualities : [
         {
             label : String,
-            url : String
+            url : String,
+            _id: false 
         }
     ],
     processing : {

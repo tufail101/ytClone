@@ -15,6 +15,7 @@ function App() {
         <Route path='' element = {<Home/>}/>
         <Route path='/search' element = {<SearchResult/>}/>
         <Route path='/watch/:id' element = {<WatchPage/>}/>
+        <Route path='/login' element = {<Login/>}/>
       </Route>
     )
   )
