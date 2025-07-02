@@ -17,7 +17,7 @@ export const toggleVideoLike = asyncHandler(async(req,res) => {
         return res
         .status(200)
         .json(
-            new ApiResponse(200,{},"Remove like Succesfully")
+            new ApiResponse(200,{isLiked : false},"Remove like Succesfully")
         )
     } else {
         await Like.create({
@@ -27,7 +27,7 @@ export const toggleVideoLike = asyncHandler(async(req,res) => {
         return res
         .status(200)
         .json(
-            new ApiResponse(200,{},"Liked successfull")
+            new ApiResponse(200,{isLiked : true},"Liked successfull")
         )
     }
 })

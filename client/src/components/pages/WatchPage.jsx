@@ -1,66 +1,102 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { FaPlay, FaPause, FaVolumeUp, FaExpand } from "react-icons/fa";
 import { useParams } from "react-router";
-import { videoById } from "../../api/videoApi";
 import { FiSettings } from "react-icons/fi";
+import VideoDetails from "../Video/VideoDetails";
+import { videoById } from "../../api/videoApi";
 
-export default function WatchPage() {
+export default function VideoPlayer() {
   const { id } = useParams();
-  const apiUrl = import.meta.env.REACT_APP_API_URL;
+  const videoRef = useRef(null);
   const [video, setVideo] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [quality, setQuality] = useState("360p");
+  const [showQualityOptions, setShowQualityOptions] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [liked, setLiked] = useState(false);
-  const [disliked, setDisliked] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
-  const [currentQuelity, setCurrentQuelity] = useState("360p");
-  const [showQualityDropdown, setShowQualityDropdown] = useState(false);
-
-  const handleLike = async () => {
-    try {
-      await axios.post(`${apiUrl}/like/likeVideo/${video._id}`);
-      setLiked(true);
-      setDisliked(false);
-    } catch (error) {
-      console.error("Toggle like failed:", error);
-    }
-  };
-  const handleSubscribe = async () => {
-    try {
-      await axios.post(
-        `${apiUrl}/subscription/toggleSubscription/${video.owner._id}`
-      );
-      setSubscribed(false);
-    } catch (error) {
-      console.error("Toggle subscribe failed:", error);
-    }
-  };
-
-  const handleDislike = () => {
-    setLiked(false);
-    setDisliked(true);
-  };
 
   useEffect(() => {
-    setLoading(true);
     videoById(id)
-      .then((res) => {
-        setVideo(res.data.data);
-        setCurrentQuelity("360p");
-      })
+      .then((res) => setVideo(res.data.data))
       .catch((err) => {
-        console.error(err);
+        console.log(err);
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [id]);
+  }, []);
 
-  const handleQualityChange = (e) => {
-    setCurrentQuelity(e.target.value);
+  const togglePlay = () => {
+    if (videoRef.current.paused) {
+      videoRef.current.play();
+      setPlaying(true);
+    } else {
+      videoRef.current.pause();
+      setPlaying(false);
+    }
   };
+
+  const handleVolume = (e) => {
+    const vol = e.target.value / 100;
+    videoRef.current.volume = vol;
+    setVolume(vol);
+  };
+
+  const handleFullscreen = () => {
+    if (videoRef.current.requestFullscreen) {
+      videoRef.current.requestFullscreen();
+    }
+  };
+
   const getVideoUrlByQuality = (label) => {
     const qualityObj = video?.qualities?.find((q) => q.label === label);
-    return qualityObj?.url || video.videourl;
+    return qualityObj?.url;
+  };
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60)
+      .toString()
+      .padStart(2, "0");
+    const seconds = Math.floor(time % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
+  // console.log(video);
+
+  useEffect(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(videoEl.currentTime);
+      setProgress((videoEl.currentTime / videoEl.duration) * 100);
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(videoEl.duration);
+    };
+    const handleVideoEnde = () => {
+      setPlaying(false);
+    };
+
+    videoEl.addEventListener("timeupdate", handleTimeUpdate);
+    videoEl.addEventListener("loadedmetadata", handleLoadedMetadata);
+    videoEl.addEventListener("ended", handleVideoEnde);
+
+    return () => {
+      videoEl.removeEventListener("timeupdate", handleTimeUpdate);
+      videoEl.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      videoEl.removeEventListener("ended", handleVideoEnde);
+    };
+  }, [video]);
+
+  const handleProgressChange = (e) => {
+    const newTime = (e.target.value / 100) * duration;
+    videoRef.current.currentTime = newTime;
+    setProgress(e.target.value);
   };
 
   if (loading) {
@@ -81,109 +117,90 @@ export default function WatchPage() {
 
   return (
     <>
-<div className="relative w-full max-h-[500px] mb-4">
-  {/* Video Player */}
-  <video
-    key={currentQuelity}
-    src={getVideoUrlByQuality(currentQuelity)}
-    controls
-    className="w-full max-h-[500px] rounded-lg"
-  />
+      <div className="relative bg-black rounded overflow-hidden">
+        <video
+          ref={videoRef}
+          src={getVideoUrlByQuality(quality)}
+          className="w-full max-h-[500px] rounded"
+        />
 
-  {/* Quality Switcher - Positioned above the video controls */}
-  <div className="absolute bottom-16 right-6 z-30">
-    <div className="relative">
-      {/* Gear Icon Button */}
-      <button
-        onClick={() => setShowQualityDropdown(!showQualityDropdown)}
-        className="p-2 bg-black/70 rounded-full text-white hover:bg-black/90"
-        title="Settings"
-      >
-        <FiSettings size={20} />
-      </button>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={progress}
+          onChange={handleProgressChange}
+          className="absolute bottom-[52px] left-0 right-0 w-full h-1 bg-red-600 appearance-none cursor-pointer"
+          style={{
+            accentColor: "#f87171",
+            height: "4px",
+          }}
+        />
 
-      {/* Dropdown Options */}
-      {showQualityDropdown && (
-        <div className="absolute bottom-full mb-2 right-0 bg-black text-white rounded-md shadow-lg w-24 text-sm">
-          {video.qualities.map((q) => (
-            <div
-              key={q.label}
-              onClick={() => {
-                setCurrentQuelity(q.label);
-                setShowQualityDropdown(false);
-              }}
-              className={`px-3 py-2 cursor-pointer hover:bg-gray-700 ${
-                currentQuelity === q.label ? "bg-gray-800 font-bold" : ""
-              }`}
-            >
-              {q.label}
+        <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 py-2 bg-black/70 text-white text-sm">
+          <div className="flex items-center gap-3">
+            <button onClick={togglePlay}>
+              {playing ? <FaPause /> : <FaPlay />}
+            </button>
+
+            <div className="flex items-center gap-2">
+              <FaVolumeUp />
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={volume * 100}
+                onChange={handleVolume}
+                className="w-20"
+              />
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  </div>
-</div>
 
+            <span>
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+          </div>
 
-      <h1 className="text-2xl font-semibold mb-2">{video.title}</h1>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <button
+                onClick={() => setShowQualityOptions(!showQualityOptions)}
+              >
+                <FiSettings size={18} />
+              </button>
+              {showQualityOptions && (
+                <div className="absolute bottom-8 right-0 bg-[#1f1f1f] border border-gray-700 rounded shadow-lg">
+                  {video.qualities.map((q) => (
+                    <div
+                      key={q.label}
+                      className={`px-4 py-1 cursor-pointer hover:bg-gray-700 ${
+                        quality === q ? "text-blue-400" : "text-white"
+                      }`}
+                      onClick={() => {
+                        setQuality(q.label);
+                        setShowQualityOptions(false);
+                      }}
+                    >
+                      {q.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-      <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
-        <div className="flex items-center gap-3">
-          <img
-            src={video.OwnerDetails[0].avatar}
-            alt={video.OwnerDetails[0].username}
-            className="w-10 h-10 rounded-full"
-          />
-          <div>
-            <p className="font-medium">{video.OwnerDetails[0].name}</p>
-            <p className="text-gray-400 text-sm">
-              @{video.OwnerDetails[0].username}
-            </p>
+            <button onClick={handleFullscreen}>
+              <FaExpand />
+            </button>
           </div>
         </div>
-
-        <div className="flex gap-3 flex-wrap">
-          <button
-            onClick={handleLike}
-            className={`px-4 py-1 rounded-full ${
-              liked ? "bg-red-600 text-white" : "bg-[#1f1f1f] text-gray-300"
-            } hover:bg-red-500 transition`}
-          >
-            👍 Like {video.likes}
-          </button>
-
-          <button
-            onClick={handleDislike}
-            className={`px-4 py-1 rounded-full ${
-              disliked ? "bg-blue-600 text-white" : "bg-[#1f1f1f] text-gray-300"
-            } hover:bg-blue-500 transition`}
-          >
-            👎 Dislike
-          </button>
-
-          <button
-            onClick={handleSubscribe}
-            className={`px-4 py-1 rounded-full ${
-              subscribed ? "bg-gray-600 text-white" : "bg-white text-black"
-            } hover:opacity-80 transition`}
-          >
-            {subscribed
-              ? `Subscribed ${video.OwnerDetails[0].subscriberCount}`
-              : `Subscribe ${video.OwnerDetails[0].subscriberCount}`}
-          </button>
-        </div>
       </div>
-
-      <div className="text-sm text-gray-400 mb-3">
-        {video.viewsCount.toLocaleString()} views ·{" "}
-        {new Date(video.createdAt).toLocaleDateString()}
-      </div>
-
-      <div className="bg-[#1f1f1f] p-4 rounded-lg text-sm text-gray-300">
-        {video.discription}
-      </div>
-    
+      <VideoDetails
+        videoName={video.title}
+        channel={video.OwnerDetails[0]}
+        likes={video.likes}
+        views={video.name}
+        subscribers={video.OwnerDetails[0].subscriberCount}
+        description = {video.discription}
+      />
     </>
   );
 }

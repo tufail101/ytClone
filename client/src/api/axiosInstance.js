@@ -14,7 +14,7 @@ axiosInstance.interceptors.response.use(
       origin._retry = true;
       try {
         await axios.post(
-          `${import.meta.env.VITE_API_URL}//user/refreshAccessToken`,
+          `${import.meta.env.VITE_API_URL}/user/refreshAccessToken`,
           {},
           { withCredentials: true }
         );
